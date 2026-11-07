@@ -1,5 +1,7 @@
 # Options Pricing & Implied Volatility Surface
 
+[![CI](https://github.com/rxj0102/options-vol-surface/actions/workflows/ci.yml/badge.svg)](https://github.com/rxj0102/options-vol-surface/actions/workflows/ci.yml)
+
 A production-quality Python toolkit for **derivatives pricing**, **Heston model calibration**, **implied volatility surface construction**, and **delta-hedging simulation** — calibrated to live SPY options data.
 
 ---
