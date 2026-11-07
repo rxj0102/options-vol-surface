@@ -57,17 +57,21 @@ def calibrate(r=0.05, n_expiries=3):
     iv_df = compute_market_iv(data, r)
     print(f"[calibrate] {len(iv_df)} options with valid market IV.")
 
+    # Deep ITM/OTM quotes are illiquid and stale; calibrate on near-the-money and OTM calls (ITM quotes carry early-exercise and staleness noise).
+    iv_df = iv_df[(iv_df["moneyness"] >= 0.98) & (iv_df["moneyness"] <= 1.10)]
+    print(f"[calibrate] {len(iv_df)} options with moneyness in [0.98, 1.10].")
+
     # Subsample for speed: at most 60 options
     if len(iv_df) > 60:
         iv_df = iv_df.sample(60, random_state=42)
 
     x0 = [0.04, 2.0, 0.04, 0.3, -0.7]
-    bounds = [(1e-4, 0.5), (0.1, 10.0), (1e-4, 0.5), (0.05, 1.0), (-0.99, 0.0)]
+    # Bounds are enforced inside heston_rmse (returns a large penalty outside).
 
-    print("[calibrate] Running L-BFGS-B optimization...")
+    print("[calibrate] Running Nelder-Mead optimization...")
     res = minimize(heston_rmse, x0, args=(iv_df, r),
-                   method="L-BFGS-B", bounds=bounds,
-                   options={"maxiter": 200, "ftol": 1e-8})
+                   method="Nelder-Mead",
+                   options={"maxiter": 400, "xatol": 1e-4, "fatol": 1e-8})
 
     v0, kappa, theta, sigma_v, rho = res.x
     rmse = res.fun

@@ -5,15 +5,20 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
-def fetch_spy_options(n_expiries=3):
-    """Return list of (expiry_str, calls_df, puts_df, S, T_years)."""
+def fetch_spy_options(n_expiries=3, min_days=21):
+    """Return list of (expiry_str, calls_df, puts_df, S, T_years).
+
+    Expiries closer than ``min_days`` are skipped: a diffusive Heston model
+    cannot fit the very wide smiles of options a few days from expiry.
+    """
     try:
         import yfinance as yf
         ticker = yf.Ticker("SPY")
         S = ticker.history(period="1d")["Close"].iloc[-1]
-        exps = ticker.options[:n_expiries]
-        result = []
         today = datetime.today()
+        exps = [e for e in ticker.options
+                if (datetime.strptime(e, "%Y-%m-%d") - today).days >= min_days][:n_expiries]
+        result = []
         for exp in exps:
             chain = ticker.option_chain(exp)
             T = (datetime.strptime(exp, "%Y-%m-%d") - today).days / 365.0
