@@ -13,15 +13,25 @@ from pricing.bsm import bsm_price, delta as bsm_delta, gamma as bsm_gamma, theta
 def simulate_delta_hedge(S0=530.0, K=530.0, T=30/365, r=0.05, sigma=0.20,
                           n_paths=1000, n_steps=30, seed=42):
     """
-    Simulate delta-hedged ATM call over n_steps days on n_paths GBM paths.
+    Simulate a long ATM call, delta-hedged by shorting Delta shares, over
+    n_steps rebalances on n_paths GBM paths (spot drifts at r, so the hedge
+    is risk-neutral and the average P&L should be ~0).
+
+    P&L is the terminal wealth of the self-financing book: the premium is
+    borrowed at r, the stock hedge is rebalanced to the BSM delta each step
+    and the call payoff is collected at expiry.  For a long option the
+    attribution is gamma (+0.5*Gamma*dS^2) + theta + financing carry; the residual is
+    discretisation error and should be small relative to total P&L's
+    unhedged dispersion.
     Returns dict with arrays of P&L components.
     """
-    np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     dt = T / n_steps
     sqrt_dt = np.sqrt(dt)
 
     pnl_gamma = np.zeros(n_paths)
     pnl_theta = np.zeros(n_paths)
+    pnl_carry = np.zeros(n_paths)
     pnl_total = np.zeros(n_paths)
 
     # Buy ATM call at t=0
@@ -30,17 +40,18 @@ def simulate_delta_hedge(S0=530.0, K=530.0, T=30/365, r=0.05, sigma=0.20,
     for path in range(n_paths):
         S = S0
         t = 0.0
-        hedge_position = bsm_delta(S, K, T, r, sigma, "call")  # shares held short
-        cash = C0 - hedge_position * S  # initial cash from option sale minus hedge cost
+        hedge_position = bsm_delta(S, K, T, r, sigma, "call")  # shares sold short
+        cash = -C0 + hedge_position * S  # pay the premium, receive the short-sale proceeds
         cumulative_gamma_pnl = 0.0
         cumulative_theta_pnl = 0.0
+        cumulative_carry_pnl = 0.0
 
         for step in range(n_steps):
             T_rem = T - t
             if T_rem <= 1e-8:
                 break
 
-            dZ = np.random.normal(0, 1)
+            dZ = rng.standard_normal()
             dS = S * (r * dt + sigma * sqrt_dt * dZ)
             S_new = S + dS
 
@@ -54,6 +65,10 @@ def simulate_delta_hedge(S0=530.0, K=530.0, T=30/365, r=0.05, sigma=0.20,
             th_pnl = th * dt * 365  # theta is per calendar day
             cumulative_theta_pnl += th_pnl
 
+            # financing carry: short stock proceeds earn r, the premium costs r
+            c_now = bsm_price(S, K, T_rem, r, sigma, "call")
+            cumulative_carry_pnl += r * (hedge_position * S - c_now) * dt
+
             # rebalance hedge
             t += dt
             T_rem_new = T - t
@@ -62,40 +77,43 @@ def simulate_delta_hedge(S0=530.0, K=530.0, T=30/365, r=0.05, sigma=0.20,
             else:
                 new_delta = 1.0 if S_new > K else 0.0
 
-            # cash flow from rebalancing
-            cash -= (new_delta - hedge_position) * S_new
-            cash *= np.exp(r * dt)  # accrue interest
+            # cash accrues interest (negative balance = borrowing) over the step,
+            # then the short position is resized at the new price
+            cash *= np.exp(r * dt)
+            cash += (new_delta - hedge_position) * S_new
 
             hedge_position = new_delta
             S = S_new
 
-        # Final option payoff
+        # Final P&L = option payoff + cash - cost of covering the short hedge
         payoff = max(S - K, 0.0)
-        # Final P&L = option payoff + cash + hedge liquidation
-        final_pnl = payoff + cash + hedge_position * S - C0 * np.exp(r * T)
+        final_pnl = payoff + cash - hedge_position * S
 
         pnl_gamma[path] = cumulative_gamma_pnl
         pnl_theta[path] = cumulative_theta_pnl
+        pnl_carry[path] = cumulative_carry_pnl
         pnl_total[path] = final_pnl
 
-    pnl_residual = pnl_total - pnl_gamma - pnl_theta
+    pnl_residual = pnl_total - pnl_gamma - pnl_theta - pnl_carry
 
     return {
         "total": pnl_total,
         "gamma": pnl_gamma,
         "theta": pnl_theta,
+        "carry": pnl_carry,
         "residual": pnl_residual,
         "C0": C0,
     }
 
 
 def plot_pnl_distribution(results, output_path="outputs/delta_hedge_pnl_distribution.png"):
-    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+    fig, axes = plt.subplots(2, 3, figsize=(16, 9))
 
     components = [
         ("total", "Total P&L", "steelblue"),
         ("gamma", "Gamma P&L (0.5·Γ·dS²)", "green"),
         ("theta", "Theta P&L (Θ·dt)", "red"),
+        ("carry", "Financing carry", "purple"),
         ("residual", "Residual P&L", "orange"),
     ]
 
@@ -129,7 +147,7 @@ def print_summary(results):
     print("\n" + "="*50)
     print("Delta-Hedge P&L Attribution Summary")
     print("="*50)
-    for key in ["total", "gamma", "theta", "residual"]:
+    for key in ["total", "gamma", "theta", "carry", "residual"]:
         d = results[key]
         print(f"  {key:10s}: mean={np.mean(d):7.3f}  std={np.std(d):6.3f}  "
               f"5pct={np.percentile(d,5):7.3f}  95pct={np.percentile(d,95):7.3f}")
