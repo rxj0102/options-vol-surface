@@ -125,3 +125,11 @@ python integration/garch_integration.py  # GARCH vs IV
 1. **Vol Skew**: SPY options exhibit persistent negative skew — OTM puts trade at 3–8% higher IV than OTM calls due to crash risk demand
 2. **Gamma-Theta balance**: In theory, delta-hedging nets zero P&L; in practice, realized vol deviations from σ_BSM cause dispersion
 3. **Variance Risk Premium**: Implied vol (ATM IV) trades ~2% above GARCH-forecast realized vol on average — a persistent risk premium paid by option buyers
+
+## Corrections and testing
+
+- **Heston pricing fixed for long maturities.** The characteristic function used the original 1993 formulation, which is numerically unstable: a 2-year ITM call was off by about 1.5 and maturities of 10 years or more returned NaN. It now uses the stable "little trap" form and agrees with Monte Carlo and the Black-Scholes limit.
+- **Delta-hedge simulation fixed.** The terminal P&L added the call payoff to a book that was short the option, so the "hedged" P&L was just the option payoff (mean ~13, std ~38 on a premium of ~13). The book is now a long call hedged with short stock; the P&L is centred on zero, its dispersion shrinks as rebalancing gets more frequent, and a financing-carry term closes the gamma/theta attribution (residual mean ~0).
+- **Mock GARCH forecasts** mixed annual-vol levels with a daily-scale `omega`, so the series decayed to ~1% vol. It is now variance-targeted around 18% annual vol.
+- `pytest` (BSM Greeks vs finite differences, put-call parity, Heston vs Monte Carlo, hedge P&L) and CI added.
+- `outputs/` (figures and `calibration_results.csv`) predate these fixes; rerun `python run_all.py` to refresh them.

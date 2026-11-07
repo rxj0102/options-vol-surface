@@ -11,15 +11,17 @@ def heston_char_func(phi, S, K, T, r, v0, kappa, theta, sigma_v, rho, j):
     b = kappa - rho * sigma_v if j == 1 else kappa
 
     d = np.sqrt((rho * sigma_v * 1j * phi - b) ** 2 - sigma_v**2 * (2 * u * 1j * phi - phi**2))
-    g = (b - rho * sigma_v * 1j * phi + d) / (b - rho * sigma_v * 1j * phi - d)
-
-    exp_dT = np.exp(d * T)
+    # "Little Heston trap" formulation (Albrecher et al. 2007): using
+    # g2 = 1/g and exp(-dT) keeps the complex logarithm on a single branch
+    # and the exponent bounded, so prices stay correct for long maturities
+    # (the original Heston 1993 form returns wrong values / NaN there).
+    bm = b - rho * sigma_v * 1j * phi
+    g2 = (bm - d) / (bm + d)
+    exp_mdT = np.exp(-d * T)
     C = r * 1j * phi * T + (kappa * theta / sigma_v**2) * (
-        (b - rho * sigma_v * 1j * phi + d) * T - 2 * np.log((1 - g * exp_dT) / (1 - g))
+        (bm - d) * T - 2 * np.log((1 - g2 * exp_mdT) / (1 - g2))
     )
-    D = ((b - rho * sigma_v * 1j * phi + d) / sigma_v**2) * (
-        (1 - exp_dT) / (1 - g * exp_dT)
-    )
+    D = ((bm - d) / sigma_v**2) * ((1 - exp_mdT) / (1 - g2 * exp_mdT))
     return np.exp(C + D * v0 + 1j * phi * x)
 
 
@@ -35,9 +37,9 @@ def heston_price(S, K, T, r, v0, kappa, theta, sigma_v, rho, option_type="call")
             return max(S - K, 0.0)
         return max(K - S, 0.0)
 
-    limit = 200
-    P1, _ = quad(_integrand, 1e-9, limit, args=(S, K, T, r, v0, kappa, theta, sigma_v, rho, 1), limit=100)
-    P2, _ = quad(_integrand, 1e-9, limit, args=(S, K, T, r, v0, kappa, theta, sigma_v, rho, 2), limit=100)
+    limit = 1000  # upper integration bound; the integrand decays like exp(-c*phi)
+    P1, _ = quad(_integrand, 1e-9, limit, args=(S, K, T, r, v0, kappa, theta, sigma_v, rho, 1), limit=500)
+    P2, _ = quad(_integrand, 1e-9, limit, args=(S, K, T, r, v0, kappa, theta, sigma_v, rho, 2), limit=500)
 
     P1 = 0.5 + P1 / np.pi
     P2 = 0.5 + P2 / np.pi

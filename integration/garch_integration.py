@@ -35,14 +35,19 @@ def _mock_garch_forecasts(n_days=252):
     """Simulate realistic GARCH(1,1) forecasts for ~1 year."""
     np.random.seed(0)
     dates = [datetime(2024, 1, 2) + timedelta(days=i) for i in range(n_days)]
-    # GBM-like log-vol process
-    omega, alpha, beta = 0.000002, 0.08, 0.90
+    # GARCH(1,1) in *daily* variance units, annualised on output.  The
+    # long-run level is set to 18% annual vol via variance targeting
+    # (omega = (1 - alpha - beta) * long_run_var); mixing annual-vol levels
+    # with a daily-scale omega would make the process decay to ~1% vol.
+    alpha, beta = 0.08, 0.90
+    long_run_daily = 0.18**2 / 252.0
+    omega = (1.0 - alpha - beta) * long_run_daily
     sigma2 = np.zeros(n_days)
-    sigma2[0] = 0.18**2
+    sigma2[0] = long_run_daily
     for t in range(1, n_days):
         eps = np.random.normal(0, np.sqrt(sigma2[t-1]))
         sigma2[t] = omega + alpha * eps**2 + beta * sigma2[t-1]
-    garch_vol = np.sqrt(sigma2)
+    garch_vol = np.sqrt(sigma2 * 252.0)
     print("[integration] Using mock GARCH vol forecasts.")
     return pd.DataFrame({"date": dates, "garch_vol": garch_vol})
 
