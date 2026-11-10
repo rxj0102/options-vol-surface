@@ -136,3 +136,31 @@ python integration/garch_integration.py  # GARCH vs IV
 - `pytest` (BSM Greeks vs finite differences, put-call parity, Heston vs Monte Carlo, hedge P&L) and CI added.
 - **Calibration data and optimizer.** The three nearest expiries are often only days out, and a diffusive Heston model cannot fit their wide smiles (RMSE about 9 vol points, optimizer stuck at its start values). Calibration now skips expiries under 21 days, uses only calls with moneyness in [0.98, 1.10] (deep ITM quotes are stale and carry early-exercise premium), and uses Nelder-Mead; on live SPY data the RMSE is about 1.1 vol points and the optimizer converges. `rho` lands near the -1 bound, which is typical for short-dated index smiles.
 - `outputs/` were regenerated with `python run_all.py` on live SPY data pulled on 2026-11-07; a rerun on another day will differ.
+
+## Reproducibility
+
+### Data availability
+
+All inputs come from free, public sources. No paid data or API keys are required unless noted.
+
+- Yahoo Finance via the yfinance package (free, no key)
+
+### Computational requirements
+
+- Python 3.12.3. Every dependency version is pinned in `uv.lock`.
+- Checked on Linux x86_64 with 2 CPU cores and 8 GB RAM. No GPU is needed.
+
+```bash
+pip install uv     # once
+uv sync            # installs the exact pinned environment
+uv run pytest -q   # runs the test suite
+```
+
+### Runtime
+
+The test suite (11 tests) finishes in about 2 minutes on the machine above, including any data downloads it triggers.
+
+### Citation
+
+Citation metadata is in `CITATION.cff`. GitHub turns it into a Cite this repository button on the repo page.
+
