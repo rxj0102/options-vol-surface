@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/rxj0102/options-vol-surface/actions/workflows/ci.yml/badge.svg)](https://github.com/rxj0102/options-vol-surface/actions/workflows/ci.yml)
 
-A production-quality Python toolkit for **derivatives pricing**, **Heston model calibration**, **implied volatility surface construction**, and **delta-hedging simulation** — calibrated to live SPY options data.
+A production-quality Python toolkit for **derivatives pricing**, **Heston model calibration**, **implied volatility surface construction**, and **delta-hedging simulation**: calibrated to live SPY options data.
 
 ---
 
@@ -51,7 +51,7 @@ $$dS = \mu S\,dt + \sigma S\,dW$$
 
 European call price: $C = SN(d_1) - Ke^{-rT}N(d_2)$
 
-**Limitation**: A single σ implies a *flat* vol surface. Real markets show vol smiles and term structure — OTM puts trade at higher IV than OTM calls (the "skew").
+**Limitation**: A single σ implies a *flat* vol surface. Real markets show vol smiles and term structure; OTM puts trade at higher IV than OTM calls (the *skew*).
 
 ### Heston Stochastic Volatility Model
 
@@ -68,7 +68,7 @@ $$dv = \kappa(\theta - v)\,dt + \sigma_v\sqrt{v}\,dW_2, \quad \langle dW_1 dW_2 
 | $\sigma_v$ | Vol-of-vol |
 | $\rho$ | Correlation (negative → negative skew) |
 
-Pricing uses the **characteristic function** + Fourier inversion — semi-analytical, no Monte Carlo required.
+Pricing uses the **characteristic function** + Fourier inversion: semi-analytical, no Monte Carlo required.
 
 **Advantage**: Naturally produces vol smiles, skew, and term structure that match market observations.
 
@@ -132,14 +132,14 @@ python integration/garch_integration.py  # GARCH vs IV
 
 ## Key Insights
 
-1. **Vol Skew**: SPY options exhibit persistent negative skew — OTM puts trade at 3–8% higher IV than OTM calls due to crash risk demand
+1. **Vol Skew**: SPY options exhibit persistent negative skew; OTM puts trade at 3–8% higher IV than OTM calls due to crash risk demand
 2. **Gamma-Theta balance**: In theory, delta-hedging nets zero P&L; in practice, realized vol deviations from σ_BSM cause dispersion
-3. **Variance Risk Premium**: Implied vol (ATM IV) trades ~2% above GARCH-forecast realized vol on average — a persistent risk premium paid by option buyers
+3. **Variance Risk Premium**: Implied vol (ATM IV) trades ~2% above GARCH-forecast realized vol on average; a persistent risk premium paid by option buyers
 
 ## Corrections and testing
 
-- **Heston pricing fixed for long maturities.** The characteristic function used the original 1993 formulation, which is numerically unstable: a 2-year ITM call was off by about 1.5 and maturities of 10 years or more returned NaN. It now uses the stable "little trap" form and agrees with Monte Carlo and the Black-Scholes limit.
-- **Delta-hedge simulation fixed.** The terminal P&L added the call payoff to a book that was short the option, so the "hedged" P&L was just the option payoff (mean ~13, std ~38 on a premium of ~13). The book is now a long call hedged with short stock; the P&L is centred on zero, its dispersion shrinks as rebalancing gets more frequent, and a financing-carry term closes the gamma/theta attribution (residual mean ~0).
+- **Heston pricing fixed for long maturities.** The characteristic function used the original 1993 formulation, which is numerically unstable: a 2-year ITM call was off by about 1.5 and maturities of 10 years or more returned NaN. It now uses the stable *little trap* form and agrees with Monte Carlo and the Black-Scholes limit.
+- **Delta-hedge simulation fixed.** The terminal P&L added the call payoff to a book that was short the option, so the *hedged* P&L was just the option payoff (mean ~13, std ~38 on a premium of ~13). The book is now a long call hedged with short stock; the P&L is centred on zero, its dispersion shrinks as rebalancing gets more frequent, and a financing-carry term closes the gamma/theta attribution (residual mean ~0).
 - **Mock GARCH forecasts** mixed annual-vol levels with a daily-scale `omega`, so the series decayed to ~1% vol. It is now variance-targeted around 18% annual vol.
 - `pytest` (BSM Greeks vs finite differences, put-call parity, Heston vs Monte Carlo, hedge P&L) and CI added.
 - **Calibration data and optimizer.** The three nearest expiries are often only days out, and a diffusive Heston model cannot fit their wide smiles (RMSE about 9 vol points, optimizer stuck at its start values). Calibration now skips expiries under 21 days, uses only calls with moneyness in [0.98, 1.10] (deep ITM quotes are stale and carry early-exercise premium), and uses Nelder-Mead; on live SPY data the RMSE is about 1.1 vol points and the optimizer converges. `rho` lands near the -1 bound, which is typical for short-dated index smiles.
