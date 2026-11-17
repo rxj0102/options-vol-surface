@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: If you use this software, please cite it as below.
 type: software
 title: >-
-  Options Pricing & Implied Volatility Surface
+  SPY volatility surface and the VIX premium
 authors:
   - given-names: Rajvardhan
     family-names: Jadhav
