@@ -1,0 +1,14 @@
+{
+  "file": "spy_chain_2026-11-16.csv.gz",
+  "source": "Cboe delayed quotes, last quotes of the session",
+  "spot": 739.95,
+  "pulled_utc": "2026-11-16 21:15",
+  "treasury_date": "2026-11-13",
+  "treasury_yields": {
+    "0.0833": 0.041,
+    "0.2500": 0.0432,
+    "0.5000": 0.0442,
+    "1.0000": 0.0465,
+    "2.0000": 0.0488
+  }
+}

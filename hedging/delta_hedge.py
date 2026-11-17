@@ -106,7 +106,7 @@ def simulate_delta_hedge(S0=530.0, K=530.0, T=30/365, r=0.05, sigma=0.20,
     }
 
 
-def plot_pnl_distribution(results, output_path="outputs/delta_hedge_pnl_distribution.png"):
+def plot_pnl_distribution(results, output_path="results/delta_hedge_pnl_distribution.png"):
     fig, axes = plt.subplots(2, 3, figsize=(16, 9))
 
     components = [
@@ -137,7 +137,7 @@ def plot_pnl_distribution(results, output_path="outputs/delta_hedge_pnl_distribu
         fontsize=12
     )
     plt.tight_layout()
-    os.makedirs("outputs", exist_ok=True)
+    os.makedirs("results", exist_ok=True)
     plt.savefig(output_path, dpi=120)
     plt.close()
     print(f"[hedging] Saved {output_path}")

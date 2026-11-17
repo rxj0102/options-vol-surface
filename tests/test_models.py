@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from hedging.delta_hedge import simulate_delta_hedge
-from integration.garch_integration import _mock_garch_forecasts
 from pricing import bsm
 from pricing.heston import heston_price
 
@@ -94,9 +93,3 @@ def test_hedge_error_shrinks_with_rebalancing_frequency():
     coarse = simulate_delta_hedge(n_paths=400, n_steps=10, seed=1)["total"].std()
     fine = simulate_delta_hedge(n_paths=400, n_steps=120, seed=1)["total"].std()
     assert fine < 0.6 * coarse
-
-
-# --------------------------------------------------------- GARCH mock
-def test_mock_garch_vol_stays_near_target_level():
-    df = _mock_garch_forecasts()
-    assert 0.12 < df["garch_vol"].mean() < 0.25

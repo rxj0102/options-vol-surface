@@ -12,11 +12,13 @@ jobs:
       MPLBACKEND: Agg
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install numpy pandas scipy matplotlib pytest
-      - run: python -m pytest -q
-      - name: README calibration table matches outputs/
-        run: python scripts/render_readme.py --check
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run pytest -q
+      - name: Results reproduce from data/
+        run: |
+          cp results/metrics.json /tmp/committed.json
+          uv run python scripts/reproduce.py
+          uv run python scripts/compare_metrics.py /tmp/committed.json results/metrics.json
+      - name: README matches results
+        run: uv run python scripts/render_readme.py --check
