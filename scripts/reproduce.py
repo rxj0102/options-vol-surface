@@ -53,9 +53,7 @@ def surface_study():
     for exp, s in iv.groupby("expiry"):
         per.append(dict(expiry=exp, T=float(s["T"].iloc[0]), n=len(s),
                         k_min=float(s["k"].min()), k_max=float(s["k"].max()),
-                        heston_rmse=rmse(s["heston"], s["iv"]), svi_rmse=rmse(s["svi"], s["iv"]),
-                        heston_bias_wing=float(100 * (s.loc[s["k"] < -0.05, "heston"] - s.loc[s["k"] < -0.05, "iv"]).mean())
-                        if (s["k"] < -0.05).any() else None))
+                        heston_rmse=rmse(s["heston"], s["iv"]), svi_rmse=rmse(s["svi"], s["iv"])))
     for r in per:
         d = density_summary(svi[r["expiry"]])
         # The mean of S_T / F is 1 in theory once Lee's bound holds, but with a

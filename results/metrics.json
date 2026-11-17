@@ -298,7 +298,6 @@
     "k_max": 0.0619844,
     "heston_rmse": 1.28866,
     "svi_rmse": 0.142853,
-    "heston_bias_wing": -1.49483,
     "density": {
      "mass": 0.999617,
      "mass_in_quoted_range": 0.971411,
@@ -327,7 +326,6 @@
     "k_max": 0.0725972,
     "heston_rmse": 1.19921,
     "svi_rmse": 0.147364,
-    "heston_bias_wing": -1.04008,
     "density": {
      "mass": 1.00066,
      "mass_in_quoted_range": 0.970992,
@@ -356,7 +354,6 @@
     "k_max": 0.0820071,
     "heston_rmse": 1.03654,
     "svi_rmse": 0.178543,
-    "heston_bias_wing": -0.549846,
     "density": {
      "mass": 1.00054,
      "mass_in_quoted_range": 0.972671,
@@ -385,7 +382,6 @@
     "k_max": 0.0821429,
     "heston_rmse": 0.889797,
     "svi_rmse": 0.165204,
-    "heston_bias_wing": 0.00758552,
     "density": {
      "mass": 1.0006,
      "mass_in_quoted_range": 0.96797,
@@ -414,7 +410,6 @@
     "k_max": 0.092916,
     "heston_rmse": 0.893112,
     "svi_rmse": 0.158032,
-    "heston_bias_wing": 0.76592,
     "density": {
      "mass": 1.00053,
      "mass_in_quoted_range": 0.972772,
@@ -443,7 +438,6 @@
     "k_max": 0.104463,
     "heston_rmse": 0.948582,
     "svi_rmse": 0.143561,
-    "heston_bias_wing": 0.231116,
     "density": {
      "mass": 1.00058,
      "mass_in_quoted_range": 0.970219,
@@ -472,7 +466,6 @@
     "k_max": 0.121056,
     "heston_rmse": 0.727762,
     "svi_rmse": 0.144743,
-    "heston_bias_wing": 0.54229,
     "density": {
      "mass": 1.00051,
      "mass_in_quoted_range": 0.973892,
@@ -501,7 +494,6 @@
     "k_max": 0.136565,
     "heston_rmse": 0.78601,
     "svi_rmse": 0.152368,
-    "heston_bias_wing": 0.219261,
     "density": {
      "mass": 1.00058,
      "mass_in_quoted_range": 0.973309,
@@ -530,7 +522,6 @@
     "k_max": 0.14147,
     "heston_rmse": 0.519743,
     "svi_rmse": 0.0996427,
-    "heston_bias_wing": 0.594973,
     "density": {
      "mass": 1.00044,
      "mass_in_quoted_range": 0.962948,
@@ -559,7 +550,6 @@
     "k_max": 0.156873,
     "heston_rmse": 0.731374,
     "svi_rmse": 0.164933,
-    "heston_bias_wing": -0.0748658,
     "density": {
      "mass": 1.00058,
      "mass_in_quoted_range": 0.972937,
@@ -588,7 +578,6 @@
     "k_max": 0.162311,
     "heston_rmse": 0.696522,
     "svi_rmse": 0.141536,
-    "heston_bias_wing": 0.448922,
     "density": {
      "mass": 1.0006,
      "mass_in_quoted_range": 0.972073,
@@ -617,7 +606,6 @@
     "k_max": 0.171807,
     "heston_rmse": 0.721513,
     "svi_rmse": 0.176827,
-    "heston_bias_wing": -0.163547,
     "density": {
      "mass": 1.00061,
      "mass_in_quoted_range": 0.971367,
@@ -646,7 +634,6 @@
     "k_max": 0.181376,
     "heston_rmse": 0.33397,
     "svi_rmse": 0.095378,
-    "heston_bias_wing": 0.252361,
     "density": {
      "mass": 1.00044,
      "mass_in_quoted_range": 0.951374,
@@ -675,7 +662,6 @@
     "k_max": 0.203552,
     "heston_rmse": 0.733652,
     "svi_rmse": 0.207641,
-    "heston_bias_wing": -0.310222,
     "density": {
      "mass": 1.00069,
      "mass_in_quoted_range": 0.968164,
@@ -704,7 +690,6 @@
     "k_max": 0.208623,
     "heston_rmse": 0.277281,
     "svi_rmse": 0.123472,
-    "heston_bias_wing": 0.293235,
     "density": {
      "mass": 1.0005,
      "mass_in_quoted_range": 0.94069,
@@ -733,7 +718,6 @@
     "k_max": 0.252001,
     "heston_rmse": 0.70707,
     "svi_rmse": 0.224528,
-    "heston_bias_wing": -0.438463,
     "density": {
      "mass": 1.0007,
      "mass_in_quoted_range": 0.966232,
@@ -762,7 +746,6 @@
     "k_max": 0.257043,
     "heston_rmse": 0.191682,
     "svi_rmse": 0.124805,
-    "heston_bias_wing": 0.167954,
     "density": {
      "mass": 1.00044,
      "mass_in_quoted_range": 0.916149,
@@ -791,7 +774,6 @@
     "k_max": 0.298331,
     "heston_rmse": 0.707024,
     "svi_rmse": 0.214798,
-    "heston_bias_wing": -0.480342,
     "density": {
      "mass": 1.0007,
      "mass_in_quoted_range": 0.964496,
