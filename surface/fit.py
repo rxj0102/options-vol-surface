@@ -94,27 +94,55 @@ def svi_w(k, a, b, rho, m, sigma):
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma ** 2))
 
 
-def fit_svi(k, w):
-    """Fit raw SVI to total variance with b >= 0, |rho| < 1, sigma > 0 and
-    Roger Lee's moment bound b (1 + |rho|) <= 2. Without the bound the wings
-    can grow faster than any density allows, and the implied distribution of
-    S_T has no mean. b is parameterized as 2 u / (1 + |rho|), u in [0, 1].
+LEE_SLOPE = 1.99   # wing slope cap, just inside Lee's bound of 2 so the density has a mean
+
+
+def _svi_inner(k, w, m, sigma):
+    """Best (a, b, rho) for fixed (m, sigma), with b >= 0, |rho| <= 1 and Roger
+    Lee's bound b (1 + |rho|) <= 2, as a linear least squares problem.
+
+    With y = (k - m) / sigma, w = a + c y + d sqrt(y^2 + 1), c = b sigma rho,
+    d = b sigma. Writing u = d + c and v = d - c turns |rho| <= 1 into u, v >= 0
+    and Lee's bound into u, v <= 2 sigma (capped at LEE_SLOPE sigma), so the constraints are a box
+    (the quasi-explicit method of Zeliade, 2009).
     """
-    k, w = np.asarray(k), np.asarray(w)
+    from scipy.optimize import lsq_linear
+    y = (k - m) / sigma
+    r = np.sqrt(y ** 2 + 1)
+    A = np.column_stack([np.ones_like(k), 0.5 * (y + r), 0.5 * (r - y)])
+    cap = LEE_SLOPE * sigma
+    sol = lsq_linear(A, w, bounds=([-np.inf, 0, 0], [np.inf, cap, cap]),
+                     method="bvls", tol=1e-15)
+    a, u, v = sol.x
+    d, c = 0.5 * (u + v), 0.5 * (u - v)
+    b = d / sigma
+    rho = c / d if d > 0 else 0.0
+    return (a, b, rho), float(np.sum((A @ sol.x - w) ** 2))
 
-    def unpack(x):
-        a, u, rho, m, sigma = x
-        return a, 2 * u / (1 + abs(rho)), rho, m, sigma
 
-    best = None
-    for m0 in (0.0, -0.05, 0.05):
-        for s0 in (0.05, 0.2):
-            x0 = [max(w.min() * 0.5, 1e-6), 0.05, -0.5, m0, s0]
-            r = least_squares(lambda x: svi_w(k, *unpack(x)) - w, x0,
-                              bounds=([-1.0, 0.0, -0.999, -1.0, 1e-4], [1.0, 1.0, 0.999, 1.0, 2.0]))
-            if best is None or r.cost < best.cost:
-                best = r
-    return np.array(unpack(best.x))
+def fit_svi(k, w):
+    """Fit raw SVI to total variance with b >= 0, |rho| <= 1, sigma > 0 and
+    Lee's moment bound b (1 + |rho|) <= 2 (without it the wings can grow
+    faster than any density allows). The inner problem in (a, b, rho) is solved
+    exactly for each (m, sigma); the outer search is a grid followed by
+    Nelder-Mead, so the result does not depend on a local start.
+    """
+    from scipy.optimize import minimize
+    k, w = np.asarray(k, float), np.asarray(w, float)
+
+    def obj(x):
+        m, ls = x
+        return _svi_inner(k, w, m, np.exp(ls))[1]
+
+    grid = [(m, ls) for m in np.linspace(k.min(), k.max(), 15) for ls in np.linspace(np.log(1e-3), np.log(1.0), 15)]
+    x0 = min(grid, key=obj)
+    dm = 0.1 * (k.max() - k.min())
+    simplex = np.array([x0, (x0[0] + dm, x0[1]), (x0[0], x0[1] + 0.5)])
+    res = minimize(obj, x0, method="Nelder-Mead",
+                   options={"initial_simplex": simplex, "xatol": 1e-10, "fatol": 1e-18, "maxiter": 6000})
+    m, sigma = res.x[0], float(np.exp(res.x[1]))
+    (a, b, rho), _ = _svi_inner(k, w, m, sigma)
+    return np.array([a, b, rho, m, sigma])
 
 
 def svi_density_g(k, a, b, rho, m, sigma):

@@ -18,6 +18,11 @@ def walk(a, b, path, bad):
                 bad.append(f"{path}/{k}: missing on one side")
             else:
                 walk(a[k], b[k], f"{path}/{k}", bad)
+    elif isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            bad.append(f"{path}: lists of length {len(a)} and {len(b)}")
+        for i, (x, y) in enumerate(zip(a, b)):
+            walk(x, y, f"{path}[{i}]", bad)
     elif isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool):
         if abs(a - b) > TOL * max(abs(a), abs(b), 1e-3):
             bad.append(f"{path}: {a} vs {b}")

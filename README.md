@@ -40,30 +40,30 @@ Snapshot `spy_chain_2026-11-16.csv.gz`, pulled 2026-11-16 21:15 UTC with SPY at 
 
 | Expiry | Days | Quotes | ATM vol | 25d risk reversal | 25d butterfly | SVI RMSE | Heston RMSE |
 |---|---|---|---|---|---|---|---|
-| 2026-12-04 | 18 | 96 | 18.7 | -6.7 | 0.51 | 0.15 | 1.29 |
+| 2026-12-04 | 18 | 96 | 18.7 | -6.7 | 0.51 | 0.14 | 1.29 |
 | 2026-12-11 | 25 | 101 | 18.6 | -7.0 | 0.56 | 0.15 | 1.20 |
-| 2026-12-18 | 32 | 132 | 18.4 | -7.3 | 0.54 | 0.19 | 1.04 |
+| 2026-12-18 | 32 | 132 | 18.4 | -7.3 | 0.54 | 0.18 | 1.04 |
 | 2026-12-24 | 38 | 96 | 17.9 | -7.2 | 0.55 | 0.17 | 0.89 |
 | 2026-12-31 | 45 | 237 | 17.6 | -7.2 | 0.58 | 0.16 | 0.89 |
-| 2027-01-15 | 60 | 62 | 17.4 | -7.2 | 0.59 | 0.15 | 0.95 |
-| 2027-01-29 | 74 | 206 | 17.4 | -7.2 | 0.55 | 0.15 | 0.73 |
-| 2027-02-19 | 95 | 76 | 17.3 | -7.2 | 0.56 | 0.16 | 0.79 |
+| 2027-01-15 | 60 | 62 | 17.4 | -7.2 | 0.59 | 0.14 | 0.95 |
+| 2027-01-29 | 74 | 206 | 17.4 | -7.2 | 0.55 | 0.14 | 0.73 |
+| 2027-02-19 | 95 | 76 | 17.3 | -7.2 | 0.56 | 0.15 | 0.79 |
 | 2027-02-26 | 102 | 141 | 17.4 | -7.3 | 0.49 | 0.10 | 0.52 |
-| 2027-03-19 | 123 | 85 | 17.5 | -7.5 | 0.52 | 0.17 | 0.73 |
-| 2027-03-31 | 135 | 171 | 17.4 | -7.4 | 0.52 | 0.15 | 0.70 |
+| 2027-03-19 | 123 | 85 | 17.5 | -7.5 | 0.52 | 0.16 | 0.73 |
+| 2027-03-31 | 135 | 171 | 17.4 | -7.4 | 0.52 | 0.14 | 0.70 |
 | 2027-04-16 | 151 | 92 | 17.6 | -7.5 | 0.45 | 0.18 | 0.72 |
 | 2027-04-30 | 165 | 144 | 17.8 | -7.6 | 0.39 | 0.10 | 0.33 |
 | 2027-06-17 | 213 | 105 | 18.0 | -7.5 | 0.19 | 0.21 | 0.73 |
-| 2027-06-30 | 226 | 171 | 18.0 | -7.5 | 0.18 | 0.13 | 0.28 |
+| 2027-06-30 | 226 | 171 | 18.0 | -7.5 | 0.18 | 0.12 | 0.28 |
 | 2027-09-17 | 305 | 122 | 18.5 | -7.4 | -0.06 | 0.22 | 0.71 |
-| 2027-09-30 | 318 | 183 | 18.6 | -7.3 | -0.09 | 0.13 | 0.19 |
-| 2027-12-17 | 396 | 137 | 18.9 | -7.1 | -0.26 | 0.22 | 0.71 |
+| 2027-09-30 | 318 | 183 | 18.6 | -7.3 | -0.09 | 0.12 | 0.19 |
+| 2027-12-17 | 396 | 137 | 18.9 | -7.1 | -0.26 | 0.21 | 0.71 |
 
 Vols and RMSEs in vol points. Risk reversal is the 25 delta call vol minus the 25 delta put vol.
 
 One Heston parameter set for the whole surface: v0 0.0449, kappa 6.39, theta 0.0520, sigma_v 1.99, rho -0.74. Feller ratio 2 kappa theta / sigma_v^2 = 0.17 (below 1, so the variance process can reach zero, which is typical of fits to index smiles). Overall RMSE 0.76 vol points against 0.16 for SVI fitted expiry by expiry; 1.04 on expiries under 55 days and 0.62 beyond. One set of five parameters has to produce every maturity's smile at once, and its errors are largest in the shortest expiries, where the smile is steepest in strike. SVI, with five parameters for each expiry, fits every slice to within a fraction of a vol point.
 
-SVI static arbitrage checks: 0 of 18 slices have butterfly arbitrage on their quoted range (minimum g(k) 0.146); 0 calendar violations on the log-moneyness range all expiries share (-0.20 to 0.06).
+SVI static arbitrage checks: 0 of 18 slices have butterfly arbitrage on their quoted range (minimum g(k) 0.147); 0 calendar violations on the log-moneyness range all expiries share (-0.20 to 0.06).
 <!-- surface:end -->
 
 ![Smiles with SVI and Heston fits](results/smiles.png)
@@ -74,33 +74,33 @@ SVI static arbitrage checks: 0 of 18 slices have butterfly arbitrage on their qu
 - Discount factors come from the Treasury curve on the latest date with data (FRED constant maturity yields, interpolated in maturity). The forward per expiry is F = K + (C minus P) / D at the five strikes where call and put are closest in price, median taken, as in the Cboe VIX calculation. A regression of C minus P on the strike, which would also estimate D, was tried first and gave negative interest rates for every expiry: SPY options are American, and the early exercise premium of in-the-money puts grows with the strike and bends the regression. Near the money that premium is small.
 - Black-76 implied vols of out-of-the-money quotes: puts below the forward, calls above.
 - Heston is fitted to all expiries at once by least squares on price errors divided by vega, which approximates vol errors, from four starting points. The pricer integrates the characteristic function (little trap form) on a fixed Gauss-Legendre grid, checked against adaptive quadrature in the tests.
-- SVI (Gatheral 2004) is fitted to total variance per expiry, with Roger Lee's bound on the wing slopes so the implied density has a mean. Butterfly arbitrage is checked with Gatheral and Jacquier's g(k) on each slice's quoted range; calendar arbitrage by requiring total variance to rise with maturity at fixed log-moneyness.
+- SVI (Gatheral 2004) is fitted to total variance per expiry, with the wing slopes capped at 1.99, just inside Roger Lee's bound of 2, so the implied density has a mean. For each (m, sigma) the other three parameters are an exact bounded linear least squares problem (the quasi-explicit method), and (m, sigma) are searched on a grid and then refined, so the fit does not depend on a starting point. Butterfly arbitrage is checked with Gatheral and Jacquier's g(k) on each slice's quoted range; calendar arbitrage by requiring total variance to rise with maturity at fixed log-moneyness.
 
 ## 3. What the surface says about the price at expiry
 
 <!-- density:start (generated by scripts/render_readme.py, do not edit by hand) -->
-Each SVI slice implies a density for the price at expiry (the second strike derivative of call prices). Every density integrates to 1 within 1.4e-04, and every slice respects Roger Lee's moment bound (steepest wing slope 1.31 against a limit of 2), so each has a finite mean. As a model-free check, the price of a tight put spread around 90% of the forward is the market's own P(S_T below that strike); across 18 expiries it differs from the SVI density's value by at most 0.4 percentage points. The columns compare the probability of a fall below 90% or 80% of the forward with a lognormal at the same expiry's at-the-money total variance, which is what a flat smile would say.
+Each SVI slice implies a density for the price at expiry (the second strike derivative of call prices). Every density integrates to 1 within 7.0e-04, and every slice respects Roger Lee's moment bound (steepest wing slope 1.99 against a limit of 2), so each has a finite mean. As a model-free check, the price of a tight put spread around 90% of the forward is the market's own P(S_T below that strike); across 18 expiries it differs from the SVI density's value by at most 0.4 percentage points. The columns compare the probability of a fall below 90% or 80% of the forward with a lognormal at the same expiry's at-the-money total variance, which is what a flat smile would say.
 
 | Expiry | Days | P(below 90% of F) | Lognormal at ATM vol | P(below 80% of F) | Lognormal at ATM vol | Mass inside quoted strikes |
 |---|---|---|---|---|---|---|
-| 2026-12-04 | 18 | 3.2% | 0.6% | 0.54% | 0.00% | 97.1% |
+| 2026-12-04 | 18 | 3.1% | 0.6% | 0.49% | 0.00% | 97.1% |
 | 2026-12-11 | 25 | 4.5% | 1.6% | 0.94% | 0.00% | 97.1% |
-| 2026-12-18 | 32 | 5.7% | 2.8% | 1.35% | 0.00% | 97.3% |
+| 2026-12-18 | 32 | 5.7% | 2.8% | 1.34% | 0.00% | 97.3% |
 | 2026-12-24 | 38 | 6.3% | 3.6% | 1.55% | 0.01% | 96.8% |
-| 2026-12-31 | 45 | 7.0% | 4.6% | 1.86% | 0.02% | 97.3% |
+| 2026-12-31 | 45 | 7.0% | 4.6% | 1.85% | 0.02% | 97.3% |
 | 2027-01-15 | 60 | 8.6% | 7.2% | 2.50% | 0.09% | 97.0% |
-| 2027-01-29 | 74 | 9.8% | 9.4% | 3.17% | 0.23% | 97.4% |
+| 2027-01-29 | 74 | 9.8% | 9.4% | 3.18% | 0.23% | 97.4% |
 | 2027-02-19 | 95 | 11.5% | 12.5% | 3.96% | 0.64% | 97.3% |
-| 2027-02-26 | 102 | 12.1% | 13.3% | 4.53% | 0.81% | 96.3% |
-| 2027-03-19 | 123 | 13.5% | 16.1% | 5.14% | 1.55% | 97.3% |
+| 2027-02-26 | 102 | 12.1% | 13.3% | 4.53% | 0.82% | 96.3% |
+| 2027-03-19 | 123 | 13.5% | 16.0% | 5.14% | 1.54% | 97.3% |
 | 2027-03-31 | 135 | 14.2% | 17.2% | 5.56% | 1.97% | 97.2% |
-| 2027-04-16 | 151 | 15.1% | 18.9% | 6.17% | 2.68% | 97.1% |
-| 2027-04-30 | 165 | 16.0% | 20.3% | 7.15% | 3.37% | 95.1% |
+| 2027-04-16 | 151 | 15.1% | 18.9% | 6.18% | 2.68% | 97.1% |
+| 2027-04-30 | 165 | 16.0% | 20.3% | 7.14% | 3.38% | 95.1% |
 | 2027-06-17 | 213 | 18.4% | 24.0% | 8.40% | 5.78% | 96.8% |
-| 2027-06-30 | 226 | 18.9% | 24.8% | 9.18% | 6.41% | 94.0% |
-| 2027-09-17 | 305 | 22.0% | 29.1% | 11.37% | 10.38% | 96.6% |
-| 2027-09-30 | 318 | 22.5% | 29.7% | 12.40% | 11.09% | 91.6% |
-| 2027-12-17 | 396 | 24.7% | 32.6% | 13.84% | 14.35% | 96.4% |
+| 2027-06-30 | 226 | 18.9% | 24.8% | 9.18% | 6.41% | 94.1% |
+| 2027-09-17 | 305 | 22.0% | 29.1% | 11.37% | 10.39% | 96.6% |
+| 2027-09-30 | 318 | 22.6% | 29.7% | 12.40% | 11.09% | 91.6% |
+| 2027-12-17 | 396 | 24.7% | 32.6% | 13.85% | 14.35% | 96.4% |
 
 The last column is the share of each density that sits between the lowest and highest quoted strikes; the rest comes from SVI's straight-line wings, so tail probabilities beyond the quotes are extrapolation.
 <!-- density:end -->
