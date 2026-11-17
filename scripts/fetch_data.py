@@ -46,13 +46,23 @@ def fetch_chain():
     Yahoo returns zero bids and asks outside market hours, so the chain comes
     from Cboe, which serves the last quotes of the most recent session. The
     quote time recorded is that session's 16:15 New York option close, and the
-    spot is the underlying's official close.
+    spot is the underlying's official close. During market hours the feed is
+    delayed, and the quote time is the underlying's last trade in it.
     """
     import requests
     raw = requests.get(CBOE_URL, timeout=120).json()
     d = raw["data"]
     session = d["last_trade_time"][:10]               # underlying's last trade, New York date
-    quote_utc = pd.Timestamp(f"{session} 16:15", tz="America/New_York").tz_convert("UTC")
+    last = pd.Timestamp(d["last_trade_time"], tz="America/New_York")
+    intraday = last.hour < 16
+    if intraday:
+        # During the session the feed is delayed; quotes and the underlying's
+        # current price are as of its last trade.
+        quote_utc = last.tz_convert("UTC")
+        spot = float(d["current_price"])
+    else:
+        quote_utc = pd.Timestamp(f"{session} 16:15", tz="America/New_York").tz_convert("UTC")
+        spot = float(d["close"])
     rows = []
     for o in d["options"]:
         m = re.fullmatch(r"SPY(\d{6})([CP])(\d{8})", o["option"])
@@ -71,13 +81,14 @@ def fetch_chain():
     path = DATA / f"spy_chain_{session}.csv.gz"
     chain.to_csv(path, index=False, compression={"method": "gzip", "mtime": 0})
     rates_date, rates = treasury_curve(session)
-    meta = {"file": path.name, "source": "Cboe delayed quotes, last quotes of the session",
-            "spot": float(d["close"]), "pulled_utc": quote_utc.strftime("%Y-%m-%d %H:%M"),
+    meta = {"file": path.name,
+            "source": "Cboe delayed quotes, " + ("intraday" if intraday else "last quotes of the session"),
+            "spot": spot, "pulled_utc": quote_utc.strftime("%Y-%m-%d %H:%M"),
             "treasury_date": rates_date, "treasury_yields": rates}
     (DATA / "spy_chain.json").write_text(json.dumps(meta, indent=2) + "\n")
     quoted = int(((chain.bid > 0) & (chain.ask > chain.bid)).sum())
     print(f"saved {path.name}: {len(chain)} quotes ({quoted} two-sided), "
-          f"{chain.expiry.nunique()} expiries, close {d['close']}")
+          f"{chain.expiry.nunique()} expiries, spot {spot}, quotes as of {quote_utc} UTC")
 
 
 def fetch_history():
