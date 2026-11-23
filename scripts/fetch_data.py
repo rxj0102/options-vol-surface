@@ -3,6 +3,7 @@
     python scripts/fetch_data.py            # both
     python scripts/fetch_data.py --chain    # SPY option chain snapshot only
     python scripts/fetch_data.py --history  # VIX and S&P 500 daily closes only
+    python scripts/fetch_data.py --vix-day  # VIX open, high, low, close on the snapshot's date
 
 The option chain is a snapshot: free sources serve only the current chain,
 so the committed file is the one every result in the README is computed from. A new
@@ -105,9 +106,37 @@ def fetch_history():
     print(f"saved vix_spx.csv.gz: {len(df)} days, {df.index[0]} to {df.index[-1]}")
 
 
+VIX_HISTORY_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+
+
+def fetch_vix_day():
+    """Record VIX's open, high, low and close on the snapshot's session date in
+    data/spy_chain.json, from Cboe's free daily history. Run it after that
+    session's close. Free sources have no intraday VIX at the snapshot's
+    minute, so the day's range is what the model-free SPY number is checked
+    against."""
+    import io
+    import requests
+    meta_path = DATA / "spy_chain.json"
+    meta = json.loads(meta_path.read_text())
+    session = pd.Timestamp(meta["pulled_utc"], tz="UTC").tz_convert("America/New_York").strftime("%Y-%m-%d")
+    df = pd.read_csv(io.StringIO(requests.get(VIX_HISTORY_URL, timeout=120).text))
+    df["DATE"] = pd.to_datetime(df["DATE"]).dt.strftime("%Y-%m-%d")
+    row = df[df["DATE"] == session]
+    if row.empty:
+        sys.exit(f"no VIX row for {session} yet; run this after that session closes")
+    r = row.iloc[0]
+    meta["vix_day"] = dict(date=session, source="Cboe VIX_History.csv",
+                           **{k.lower(): float(r[k]) for k in ("OPEN", "HIGH", "LOW", "CLOSE")})
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n")
+    print(f"VIX on {session}: {meta['vix_day']}")
+
+
 if __name__ == "__main__":
     args = set(sys.argv[1:])
     if not args or "--chain" in args:
         fetch_chain()
     if not args or "--history" in args:
         fetch_history()
+    if "--vix-day" in args:
+        fetch_vix_day()

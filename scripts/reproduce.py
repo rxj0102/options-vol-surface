@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 
 from integration.vrp import study as vrp_study          # noqa: E402
 from surface.chain import load_snapshot, mids, smile_stats, surface  # noqa: E402
+from surface.varswap import thirty_day                   # noqa: E402
 from surface.fit import density_summary, fit_heston, fit_svi_surface, heston_ivs, svi_density  # noqa: E402
 
 OUT = ROOT / "results"
@@ -83,8 +84,16 @@ def surface_study():
         if r["expiry"] in sm.index:
             r.update(atm=float(sm.loc[r["expiry"], "atm"]), rr25=float(sm.loc[r["expiry"], "rr25"]),
                      bf25=float(sm.loc[r["expiry"], "bf25"]))
+    mf = thirty_day(chain, fwd, svi)
+    model_free = dict(
+        vol=mf["vol"], svi_vol=mf["svi_vol"], weight_near=mf["weight_near"],
+        legs=[{k: g[k] for k in ("expiry", "T", "K0", "n_strikes", "k_lo", "k_hi", "var", "svi_var")}
+              for g in mf["legs"]],
+        vix_day=meta.get("vix_day"),
+    )
     short = iv["T"] < 0.15
     res = dict(
+        model_free_30d=model_free,
         snapshot=meta["file"], spot=meta["spot"], pulled_utc=meta["pulled_utc"],
         n_quotes_raw=int(len(chain)), n_quotes_used=int(len(iv)), n_expiries=int(iv["expiry"].nunique()),
         forwards=fwd.drop(columns=["n_parity"]).to_dict("records"),
