@@ -127,6 +127,27 @@ def surface_block(s):
     return "\n".join(o)
 
 
+def modelfree_block(s):
+    mf = s["model_free_30d"]
+    v = mf.get("vix_day")
+    near, nxt = mf["legs"]
+    o = [
+        f"30 day model-free volatility from the SPY chain, Cboe's VIX formula: **{mf['vol']:.2f}**. "
+        f"It interpolates the {365 * near['T']:.0f} and {365 * nxt['T']:.0f} day expiries "
+        f"({near['n_strikes']} and {nxt['n_strikes']} strikes, weight {mf['weight_near']:.2f} on the nearer). "
+        f"The same integral with prices from the fitted SVI smiles, over the same strike ranges, gives "
+        f"{mf['svi_vol']:.2f}, so the fitted surface and the raw quotes agree on the variance swap rate to "
+        f"{abs(mf['vol'] - mf['svi_vol']):.2f} vol points.",
+    ]
+    if v:
+        inside = v["low"] <= mf["vol"] <= v["high"]
+        assert inside, "the README says the SPY number lies inside VIX's range for the day"
+        o += ["", f"VIX on {v['date']} (Cboe daily history): open {v['open']:.2f}, low {v['low']:.2f}, "
+              f"high {v['high']:.2f}, close {v['close']:.2f}. The SPY number for 11:14 lies inside that range. "
+              "Free sources do not have VIX at the snapshot's minute, so this is a consistency check, not a match."]
+    return "\n".join(o)
+
+
 def density_block(s):
     per = sorted(s["per_expiry"], key=lambda r: r["T"])
     assert s["svi_wing_slope_max"] < 2, "Lee's bound: wing slopes above 2 give an infinite mean"
@@ -165,6 +186,7 @@ def main():
     text = readme.read_text()
     new = fill(text, "vrp", vrp_block(m["vrp"]))
     new = fill(new, "surface", surface_block(m["surface"]))
+    new = fill(new, "modelfree", modelfree_block(m["surface"]))
     new = fill(new, "density", density_block(m["surface"]))
     if "--check" in sys.argv:
         if new != text:
